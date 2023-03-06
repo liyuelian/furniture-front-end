@@ -1,0 +1,7 @@
+* {
+    margin: 0;
+    padding: 0;
+    /*box-sizing: border-box 就是将border和padding数值包含在width和height之内，
+    好处是修改border和padding数值盒子的大小不变*/
+    box-sizing: border-box;
+}
