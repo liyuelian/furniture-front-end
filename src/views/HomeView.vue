@@ -2,7 +2,7 @@
   <div>
     <!--增加按钮和搜索框-->
     <div style="margin:10px 5px">
-      <el-button type="primary">新增</el-button>
+      <el-button type="primary" @click="add">新增</el-button>
       <el-button>其他</el-button>
     </div>
     <div style="margin:10px 5px">
@@ -25,6 +25,39 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!--添加家居的弹窗
+      1.el-dialog v-model="dialogVisible" 表示对话框，
+            和 dialogVisible 变量双向绑定，控制是否显示对话框
+      2.el-form:mode="form" 表示表单数据和form数据变量双向绑定
+      3.el-input v-mode="form.name" 表示表单的input控件，
+            名字为name，必须需要和后端Javabean属性一致
+      4.在前端中，对象的属性是可以动态生成的-->
+    <el-dialog title="提示" v-model="dialogVisible" width="40%">
+      <el-form :model="form" label-width="120px">
+        <el-form-item label="家居名">
+          <el-input v-model="form.name" style="width: 80%"></el-input>
+        </el-form-item>
+        <el-form-item label="厂商">
+          <el-input v-model="form.maker" style="width: 80%"></el-input>
+        </el-form-item>
+        <el-form-item label="价格">
+          <el-input v-model="form.price" style="width: 80%"></el-input>
+        </el-form-item>
+        <el-form-item label="销量">
+          <el-input v-model="form.sales" style="width: 80%"></el-input>
+        </el-form-item>
+        <el-form-item label="库存">
+          <el-input v-model="form.stock" style="width: 80%"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible=false">取 消</el-button>
+          <el-button type="primary" @click="save">确 定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -32,6 +65,7 @@
 // @ is an alias to /src
 //导入组件后就可以使用
 //import HelloWorld from '@/components/HelloWorld.vue'
+import request from '@/utils/request.js'
 
 //导出组件
 export default {
@@ -40,6 +74,8 @@ export default {
   data() {
     return {
       search: '',
+      dialogVisible: false,
+      form: {},//定义一个空表单
       tableData: [
         {
           date: '2016-02-02',
@@ -62,6 +98,21 @@ export default {
           address: '上海市普陀区金沙江路1520弄',
         }
       ]
+    }
+  },
+  methods: {
+    add() {//显示添加对话框
+      //显示对话框
+      this.dialogVisible = true;
+      //每次点击都要清空上一次的表单数据
+      this.form = {};
+    },
+    save() {//将填写的表单数据发送给后端
+      //第一个参数为url，第二个参数是请求携带的数据
+      request.post("/api/save", this.form).then(res => {
+        console.log("res-", res)
+        this.dialogVisible = false;//隐藏表单
+      })
     }
   }
 }
