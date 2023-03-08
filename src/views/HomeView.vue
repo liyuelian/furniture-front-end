@@ -13,9 +13,12 @@
     <!--表格-->
     <el-table :data="tableData" stripe style="width: 90%">
       <!--sortable可以排序，有升序，降序，默认排序三种状态-->
-      <el-table-column sortable prop="date" label="日期"/>
-      <el-table-column prop="name" label="名字"/>
-      <el-table-column prop="address" label="地址"/>
+      <el-table-column prop="id" label="ID" sortable></el-table-column>
+      <el-table-column prop="name" label="家居名"></el-table-column>
+      <el-table-column prop="maker" label="厂商"></el-table-column>
+      <el-table-column prop="price" label="价格"></el-table-column>
+      <el-table-column prop="sales" label="销量"></el-table-column>
+      <el-table-column prop="stock" label="库存"></el-table-column>
       <el-table-column fixed="right" label="操作" width="100">
         <template #default="scope">
           <el-button link type="primary" size="small"
@@ -76,29 +79,11 @@ export default {
       search: '',
       dialogVisible: false,
       form: {},//定义一个空表单
-      tableData: [
-        {
-          date: '2016-02-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路1518弄',
-        },
-        {
-          date: '2016-05-04',
-          name: '李晓明',
-          address: '上海市普陀区金沙江路1517弄',
-        },
-        {
-          date: '2016-01-01',
-          name: '张三',
-          address: '上海市普陀区金沙江路1519弄',
-        },
-        {
-          date: '2016-03-16',
-          name: '李四',
-          address: '上海市普陀区金沙江路1520弄',
-        }
-      ]
+      tableData: []
     }
+  },
+  created() {//生命周期函数
+    this.list();
   },
   methods: {
     add() {//显示添加对话框
@@ -112,6 +97,14 @@ export default {
       request.post("/api/save", this.form).then(res => {
         console.log("res-", res)
         this.dialogVisible = false;//隐藏表单
+        //调用list方法，刷新页面显示的数据
+        this.list();
+      })
+    },
+    list() {//list方法，请求返回家居信息,当我们打开页面的时候，该方法就应该自动触发
+      request.get("/api/furns").then(res => {
+        //根据res的结构来获取数据
+        this.tableData = res.extend.furnList;
       })
     }
   }
