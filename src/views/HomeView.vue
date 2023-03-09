@@ -19,12 +19,17 @@
       <el-table-column prop="price" label="价格"></el-table-column>
       <el-table-column prop="sales" label="销量"></el-table-column>
       <el-table-column prop="stock" label="库存"></el-table-column>
-      <el-table-column fixed="right" label="操作" width="100">
+      <el-table-column fixed="right" label="操作" width="120">
         <template #default="scope">
           <el-button link type="primary" size="small"
                      @click="handleEdit(scope.row)">编辑
           </el-button>
-          <el-button link type="primary" size="small">删除</el-button>
+          <!--如果点击确定，就会触发handleDel，如果点击取消，就不会触发-->
+          <el-popconfirm title="确认要删除吗?" @confirm="handleDel(scope.row.id)">
+            <template #reference>
+              <el-button type="danger" size="small">删除</el-button>
+            </template>
+          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
@@ -140,6 +145,26 @@ export default {
       this.form = JSON.parse(JSON.stringify(row));
       //将数据赋给对话框后，显示对话框
       this.dialogVisible = true;
+    },
+    handleDel(id) {
+      request.delete("/api/del/" + id).then(res => {
+        //提示一个成功的消息框
+        if (res.code === 200) {//删除成功
+          //提示成功的消息框
+          this.$message({
+            type: "success",
+            message: res.msg
+          })
+        } else {
+          //提示错误的消息框
+          this.$message({
+            type: "error",
+            message: res.msg
+          })
+        }
+        //刷新页面数据
+        this.list();
+      })
     }
   }
 }
