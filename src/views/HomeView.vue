@@ -93,19 +93,53 @@ export default {
       this.form = {};
     },
     save() {//将填写的表单数据发送给后端
-      //第一个参数为url，第二个参数是请求携带的数据
-      request.post("/api/save", this.form).then(res => {
-        console.log("res-", res)
-        this.dialogVisible = false;//隐藏表单
-        //调用list方法，刷新页面显示的数据
-        this.list();
-      })
+      //修改和添加走的同一个方法
+      if (this.form.id) {//如果为修改业务，当前的id存在，表示真
+        request.put("/api/update", this.form).then(res => {
+          //注意这里的res已经经过拦截处理，它已经是原生的res.data数据
+          if (res.code === 200) {//修改成功
+            //提示成功的消息框
+            this.$message({
+              type: "success",
+              message: "更新成功"
+            })
+          } else {
+            //提示错误的消息框
+            this.$message({
+              type: "error",
+              message: "更新失败"
+            })
+          }
+          //关闭当前的修改对话框
+          this.dialogVisible = false;
+          //同时更新数据
+          this.list();
+        })
+      } else {//添加业务
+        //第一个参数为url，第二个参数是请求携带的数据
+        request.post("/api/save", this.form).then(res => {
+          console.log("res-", res)
+          this.dialogVisible = false;//隐藏表单
+          //调用list方法，刷新页面显示的数据
+          this.list();
+        })
+      }
     },
     list() {//list方法，请求返回家居信息,当我们打开页面的时候，该方法就应该自动触发
       request.get("/api/furns").then(res => {
         //根据res的结构来获取数据
         this.tableData = res.extend.furnList;
       })
+    },
+    handleEdit(row) {
+      //将当前行的家居信息绑定到弹出的对话框表单上
+      //方式1：通过row.id到后端DB去获取对应的家居信息，放回后将其绑定到this.form
+
+      //方式2：将当前获取的row数据通过处理绑定到this.form进行显示
+      //将row转成json字符串，再转成json对象
+      this.form = JSON.parse(JSON.stringify(row));
+      //将数据赋给对话框后，显示对话框
+      this.dialogVisible = true;
     }
   }
 }
