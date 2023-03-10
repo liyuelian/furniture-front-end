@@ -7,7 +7,7 @@
     </div>
     <div style="margin:10px 5px">
       <el-input v-model="search" style="width: 30%" placeholder="请输入关键字"/>
-      <el-button style="margin-left: 10px" type="primary">查找</el-button>
+      <el-button style="margin-left: 10px" type="primary" @click="list">检索</el-button>
     </div>
 
     <!--表格-->
@@ -72,7 +72,7 @@
           @size-change="handlePageSizeChange"
           @current-change="handleCurrentChange"
           :current-page="currnetPage"
-          :page-sizes="[5,10,15,20]"
+          :page-sizes="[2,5,10,15,20]"
           :page-size="pageSize"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total">
@@ -97,7 +97,7 @@ export default {
       currentPage: 1,//当前页
       pageSize: 5,//每页显示记录数
       total: 10,//共有多少记录数
-      search: '',
+      search: '',//检索条件，可以在进行分页时保留上次的检索条件
       dialogVisible: false,
       form: {},//定义一个空表单
       tableData: []
@@ -151,15 +151,16 @@ export default {
       //   //根据res的结构来获取数据
       //   this.tableData = res.extend.furnList;
       // })
-      //请求分页的接口
-      request.get("/api/furnsByPage", {
+      //请求分页的接口-带检索条件
+      request.get("/api/furnsByConditionPage", {
         params: {//指定请求携带的参数
           pageNum: this.currentPage,
-          pageSize: this.pageSize
+          pageSize: this.pageSize,
+          search: this.search
         }
       }).then(res => {//处理返回的分页信息
         this.tableData = res.extend.pageInfo.list;
-        this.total.res.extend.pageInfo.total;
+        this.total = res.extend.pageInfo.total;
       })
     },
     handleEdit(row) {
@@ -203,7 +204,7 @@ export default {
       //发出分页请求
       this.list();
     },
-    handlePageSizeChange(pageSize){//切换每一页需要显示的记录数
+    handlePageSizeChange(pageSize) {//切换每一页需要显示的记录数
       this.pageSize = pageSize;
       //发出分页请求
       this.list();
