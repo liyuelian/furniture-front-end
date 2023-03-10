@@ -45,18 +45,23 @@
       <el-form :model="form" label-width="120px" :rules="rules" ref="form">
         <el-form-item label="家居名" prop="name">
           <el-input v-model="form.name" style="width: 80%"></el-input>
+          {{serverValidErrors.name}}
         </el-form-item>
         <el-form-item label="厂商" prop="maker">
           <el-input v-model="form.maker" style="width: 80%"></el-input>
+          {{serverValidErrors.maker}}
         </el-form-item>
         <el-form-item label="价格" prop="price">
           <el-input v-model="form.price" style="width: 80%"></el-input>
+          {{serverValidErrors.price}}
         </el-form-item>
         <el-form-item label="销量" prop="sales">
           <el-input v-model="form.sales" style="width: 80%"></el-input>
+          {{serverValidErrors.sales}}
         </el-form-item>
         <el-form-item label="库存" prop="stock">
           <el-input v-model="form.stock" style="width: 80%"></el-input>
+          {{serverValidErrors.stock}}
         </el-form-item>
       </el-form>
       <template #footer>
@@ -93,6 +98,8 @@ export default {
   components: {},
   data() {
     return {
+      //存放后端校验的错误信息
+      serverValidErrors: {},
       //增加分页相应的数据
       currentPage: 1,//当前页
       pageSize: 5,//每页显示记录数
@@ -131,6 +138,7 @@ export default {
     this.list();
   },
   methods: {
+
     add() {//显示添加对话框
       //显示对话框
       this.dialogVisible = true;
@@ -138,6 +146,8 @@ export default {
       this.form = {};
       //清空上次校验的信息
       this.$refs['form'].resetFields();
+      //清空上次后端校验的信息
+      this.serverValidErrors = {};
     },
     save() {//将填写的表单数据发送给后端
       //修改和添加走的同一个方法
@@ -169,15 +179,24 @@ export default {
           if (valid) {//如果校验通过
             //第一个参数为url，第二个参数是请求携带的数据
             request.post("/api/save", this.form).then(res => {
-              console.log("res-", res)
-              this.dialogVisible = false;//隐藏表单
-              //调用list方法，刷新页面显示的数据
-              this.list();
-              //提示
-              this.$message({
-                type: "success",
-                message: "添加成功"
-              })
+              //判断后端的条件结果
+              if (res.code === 200) {//后端添加成功
+                this.dialogVisible = false;//隐藏表单
+                //调用list方法，刷新页面显示的数据
+                this.list();
+                //提示
+                this.$message({
+                  type: "success",
+                  message: "添加成功"
+                })
+              } else if (res.code === 400) {//后端校验失败
+                //取出校验失败的信息，赋给 serverValidErrors
+                this.serverValidErrors.name = res.extend.errorMsg.name;
+                this.serverValidErrors.maker = res.extend.errorMsg.maker;
+                this.serverValidErrors.price = res.extend.errorMsg.price;
+                this.serverValidErrors.sales = res.extend.errorMsg.sales;
+                this.serverValidErrors.stock = res.extend.errorMsg.stock;
+              }
             })
           } else {//校验没有通过
             //提示
