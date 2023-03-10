@@ -66,6 +66,18 @@
         </span>
       </template>
     </el-dialog>
+    <!--添加分页导航-->
+    <div style="margin: 10px 0">
+      <el-pagination
+          @size-change="handlePageSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="currnetPage"
+          :page-sizes="[5,10,15,20]"
+          :page-size="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
@@ -81,6 +93,10 @@ export default {
   components: {},
   data() {
     return {
+      //增加分页相应的数据
+      currentPage: 1,//当前页
+      pageSize: 5,//每页显示记录数
+      total: 10,//共有多少记录数
       search: '',
       dialogVisible: false,
       form: {},//定义一个空表单
@@ -131,20 +147,35 @@ export default {
       }
     },
     list() {//list方法，请求返回家居信息,当我们打开页面的时候，该方法就应该自动触发
-      request.get("/api/furns").then(res => {
-        //根据res的结构来获取数据
-        this.tableData = res.extend.furnList;
+      // request.get("/api/furns").then(res => {
+      //   //根据res的结构来获取数据
+      //   this.tableData = res.extend.furnList;
+      // })
+      //请求分页的接口
+      request.get("/api/furnsByPage", {
+        params: {//指定请求携带的参数
+          pageNum: this.currentPage,
+          pageSize: this.pageSize
+        }
+      }).then(res => {//处理返回的分页信息
+        this.tableData = res.extend.pageInfo.list;
+        this.total.res.extend.pageInfo.total;
       })
     },
     handleEdit(row) {
       //将当前行的家居信息绑定到弹出的对话框表单上
       //方式1：通过row.id到后端DB去获取对应的家居信息，放回后将其绑定到this.form
+      request.get("/api/find/" + row.id).then(res => {
+        console.log(res.extend.furn)
+        this.form = res.extend.furn;
+        this.dialogVisible = true;
+      })
 
       //方式2：将当前获取的row数据通过处理绑定到this.form进行显示
       //将row转成json字符串，再转成json对象
-      this.form = JSON.parse(JSON.stringify(row));
+      //this.form = JSON.parse(JSON.stringify(row));
       //将数据赋给对话框后，显示对话框
-      this.dialogVisible = true;
+      //this.dialogVisible = true;
     },
     handleDel(id) {
       request.delete("/api/del/" + id).then(res => {
@@ -165,6 +196,18 @@ export default {
         //刷新页面数据
         this.list();
       })
+    },
+    handleCurrentChange(pageNum) {//处理分页请求
+      //当用户点击分页超链接时，会携带pageNum
+      this.currentPage = pageNum;
+      //发出分页请求
+      this.list();
+    },
+    handlePageSizeChange(pageSize){//切换每一页需要显示的记录数
+      this.pageSize = pageSize;
+      //发出分页请求
+      this.list();
+
     }
   }
 }
